@@ -18,11 +18,15 @@ pipeline {
         stage("Clean Old Containers & Images") {
             steps {
                 echo "🧹 Removing old containers and images..."
-                bat '''
-                docker ps -q --filter "name=%CONTAINER_NAME%" > nul 2>&1 && docker stop %CONTAINER_NAME% || echo No running container
-                docker ps -aq --filter "name=%CONTAINER_NAME%" > nul 2>&1 && docker rm %CONTAINER_NAME% || echo No container to remove
-                docker images -q %IMAGE_NAME% > nul 2>&1 && docker rmi %IMAGE_NAME% || echo No image to remove
-                '''
+                script {
+                    bat '''
+                    @echo off
+                    docker stop %CONTAINER_NAME% 2>nul || echo No running container to stop
+                    docker rm %CONTAINER_NAME% 2>nul || echo No container to remove
+                    docker rmi %IMAGE_NAME%:latest 2>nul || echo No image to remove
+                    exit 0
+                    '''
+                }
             }
         }
         
